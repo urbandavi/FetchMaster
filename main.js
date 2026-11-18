@@ -1,7 +1,9 @@
+
+
 const usersRecource = "http://localhost:3000/users"
 
 
-
+let toPut = false
 
 const target = document.getElementById("target-tbody")
 const template = document.getElementById("table-template")
@@ -21,27 +23,23 @@ function validateInputData() {
             throw new Error("Hiányzik az egyik elvárt adat!")
         }
 
-        let userRole = ""
-        if (szerepkorInp.value == 1) {
-            userRole = "vásárló"
-        }
-        else if (szerepkorInp.value == 2) {
-            userRole = "eladó"
-        }
-        else {
-            userRole = "admin"
-        }
 
-        const dataToPost = {
+
+        const data = {
             name: nameInp.value,
             email: emailInp.value,
             city: varosInp.value,
             phone: telInp.value,
-            role: userRole
+            role: Number(szerepkorInp.value)
         }
 
+        if (Number(addUserBtn.dataset.id) === 0) {
+            postUser(data)
+        }
+        else {
+            putUser(data, addUserBtn.dataset.id)
 
-        postUser(dataToPost)
+        }
     } catch (error) {
         alert(error)
     }
@@ -63,7 +61,7 @@ function postUser(data) {
         body: JSON.stringify(data)
     })
         .then(function (response) {
-            response.json();
+            return response.json();
         })
         .then(res => console.log(res))
         .then(() => fetchUsers())
@@ -71,6 +69,17 @@ function postUser(data) {
             console.log(error);
 
         });
+
+}
+function putUser(data, id) {
+    const requestOptions = {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    };
+    fetch(`${usersRecource}/${id}`, requestOptions)
+        .then(response => response.json())
+        .then(() => fetchUsers()).catch(error => console.log(error))
 
 }
 
@@ -81,7 +90,7 @@ function deletUser(id) {
         .then(response => response.json())
         .then(res => console.log(res))
         .then(() => fetchUsers())
-        .catch(error => console.log(error))
+        .catch(error => console.log("huh" + error))
 }
 
 
@@ -102,21 +111,54 @@ function loadTable(data) {
 
 }
 
+
+function loadDataToForm(data) {
+    nameInp.value = ''
+    emailInp.value = ''
+    varosInp.value = ''
+    telInp.value = ''
+    szerepkorInp.value = ''
+    nameInp.value = data.name
+    emailInp.value = data.email
+    varosInp.value = data.city
+    telInp.value = data.phone
+    szerepkorInp.value = data.role
+}
+
+
+
 function loadData(data, fields, index) {
     fields[0].textContent = data[index].name
     fields[1].textContent = data[index].email
     fields[2].textContent = data[index].city
     fields[3].textContent = data[index].phone
-    fields[4].textContent = data[index].role
+
+    let userRole = ""
+    if (data[index].role == 1) {
+        userRole = "vásárló"
+    }
+    else if (data[index].role == 2) {
+        userRole = "eladó"
+    }
+    else {
+        userRole = "admin"
+    }
+
+    fields[4].textContent = userRole
 
 
     const modify = document.createElement("button")
     modify.textContent = "Módosítás"
+    modify.className = "btn-solid theme-secondary"
     modify.addEventListener("click", () => {
-
+        loadDataToForm(data[index])
+        addUserBtn.dataset.id = data[index].id
+        console.log(addUserBtn.dataset.id);
+        
     })
     const torles = document.createElement("button")
     torles.textContent = "Törlés"
+    torles.className = "btn-solid theme-danger"
     torles.addEventListener("click", () => {
         deletUser(data[index].id)
     })
@@ -131,9 +173,21 @@ function loadData(data, fields, index) {
 }
 
 
+
+
 document.addEventListener("DOMContentLoaded", () => {
+    addUserBtn.dataset.id = 0
+    console.log(addUserBtn.dataset.id);
+
     fetchUsers()
 })
 addUserBtn.addEventListener("click", () => {
+    console.log(addUserBtn.dataset.id);
     validateInputData()
+    nameInp.value = ''
+    emailInp.value = ''
+    varosInp.value = ''
+    telInp.value = ''
+    szerepkorInp.value = ''
+
 })
