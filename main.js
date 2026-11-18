@@ -79,6 +79,7 @@ function putUser(data, id) {
     };
     fetch(`${usersRecource}/${id}`, requestOptions)
         .then(response => response.json())
+        .then(()=> addUserBtn.dataset.id=0)
         .then(() => fetchUsers()).catch(error => console.log(error))
 
 }
